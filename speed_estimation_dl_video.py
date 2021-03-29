@@ -177,7 +177,9 @@ while True:
 				# for the object
 				box = detections[0, 0, i, 3:7] * np.array([W, H, W, H])
 				(startX, startY, endX, endY) = box.astype("int")
-
+				# draws rectangle
+				cv2.rectangle(frame, (startX, startY), (endX, endY),
+				(0, 255, 0), 2)
 				# construct a dlib rectangle object from the bounding
 				# box coordinates and then start the dlib correlation
 				# tracker

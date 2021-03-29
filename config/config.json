@@ -14,7 +14,7 @@
 	"track_object": 4,
 
 	// minimum confidence
-	"confidence": 0.4,
+	"confidence": 0.2,
 
 	// frame width in pixels
 	"frame_width": 400,
