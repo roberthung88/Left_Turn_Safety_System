@@ -180,6 +180,9 @@ while True:
 				# draws rectangle
 				cv2.rectangle(frame, (startX, startY), (endX, endY),
 				(0, 255, 0), 2)
+				plt.imshow(frame[startX:endX][startY:endY], interpolation='nearest')
+                plt.show()
+
 				# construct a dlib rectangle object from the bounding
 				# box coordinates and then start the dlib correlation
 				# tracker
