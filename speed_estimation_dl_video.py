@@ -28,6 +28,7 @@ import dlib
 import time
 import cv2
 import os
+import matplotlib.pyplot as plt
 
 def upload_file(tempFile, client, imageID):
 	# upload the image to Dropbox and cleanup the tempory image
@@ -178,10 +179,12 @@ while True:
 				box = detections[0, 0, i, 3:7] * np.array([W, H, W, H])
 				(startX, startY, endX, endY) = box.astype("int")
 				# draws rectangle
-				cv2.rectangle(frame, (startX, startY), (endX, endY),
-				(0, 255, 0), 2)
-				plt.imshow(frame[startX:endX][startY:endY], interpolation='nearest')
-                plt.show()
+				cv2.rectangle(frame, (startX, startY), (endX, endY),(0, 255, 0), 2)
+				print("StartX & EndX", startX, endX)
+				print("StartY & EndY", startY, endY)
+				plt.imshow(frame[startY:endY,startX:endX], interpolation='nearest')
+				plt.show()
+				
 
 				# construct a dlib rectangle object from the bounding
 				# box coordinates and then start the dlib correlation
