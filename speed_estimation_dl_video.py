@@ -180,8 +180,11 @@ while True:
 				(startX, startY, endX, endY) = box.astype("int")
 				# draws rectangle
 				cv2.rectangle(frame, (startX, startY), (endX, endY),(0, 255, 0), 2)
-				print("StartX & EndX", startX, endX)
-				print("StartY & EndY", startY, endY)
+				
+				#print("StartX & EndX", startX, endX)
+				#print("StartY & EndY", startY, endY)
+				
+				#gets snapshot of vehicles
 				plt.imshow(frame[startY:endY,startX:endX], interpolation='nearest')
 				plt.show()
 				
