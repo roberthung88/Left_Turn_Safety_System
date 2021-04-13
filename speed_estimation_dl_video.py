@@ -3,7 +3,7 @@
 # because OpenCV can't throttle FPS according to the framerate of the
 # video. This script is for development purposes only.
 #
-# python speed_estimation_dl_video.py --conf config/config.json --input sample_data/cars.mp4
+# python3 speed_estimation_dl_video.py --conf config/config.json --input sample_data/cars.mp4
 
 # inform the user about framerates and speeds
 print("[INFO] NOTE: When using an input video file, speeds will be " \
@@ -22,7 +22,7 @@ from datetime import datetime
 from threading import Thread
 import numpy as np
 import argparse
-import dropbox
+# import dropbox
 import imutils
 import dlib
 import time
@@ -30,12 +30,12 @@ import cv2
 import os
 import matplotlib.pyplot as plt
 
-def upload_file(tempFile, client, imageID):
-	# upload the image to Dropbox and cleanup the tempory image
-	print("[INFO] uploading {}...".format(imageID))
-	path = "/{}.jpg".format(imageID)
-	client.files_upload(open(tempFile.path, "rb").read(), path)
-	tempFile.cleanup()
+# def upload_file(tempFile, client, imageID):
+# 	# upload the image to Dropbox and cleanup the tempory image
+# 	print("[INFO] uploading {}...".format(imageID))
+# 	path = "/{}.jpg".format(imageID)
+# 	client.files_upload(open(tempFile.path, "rb").read(), path)
+# 	tempFile.cleanup()
 
 # construct the argument parser and parse the arguments
 ap = argparse.ArgumentParser()
@@ -181,12 +181,12 @@ while True:
 				# draws rectangle
 				cv2.rectangle(frame, (startX, startY), (endX, endY),(0, 255, 0), 2)
 				
-				#print("StartX & EndX", startX, endX)
-				#print("StartY & EndY", startY, endY)
+				print("StartX & EndX", startX, endX)
+				print("StartY & EndY", startY, endY)
 				
 				#gets snapshot of vehicles
-				plt.imshow(frame[startY:endY,startX:endX], interpolation='nearest')
-				plt.show()
+				#plt.imshow(frame[startY:endY,startX:endX], interpolation='nearest')
+				#plt.show()
 				
 
 				# construct a dlib rectangle object from the bounding
@@ -412,9 +412,10 @@ while True:
 
 					# create a thread to upload the file to dropbox
 					# and start it
-					t = Thread(target=upload_file, args=(tempFile,
-						client, imageID,))
-					t.start()
+
+					# t = Thread(target=upload_file, args=(tempFile,
+					# 	client, imageID,))
+					# t.start()
 
 					# log the event in the log file
 					info = "{},{},{},{},{},{}\n".format(year, month,
