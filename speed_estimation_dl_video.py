@@ -29,6 +29,7 @@ import time
 import cv2
 import os
 import matplotlib.pyplot as plt
+import data_collection
 
 # def upload_file(tempFile, client, imageID):
 # 	# upload the image to Dropbox and cleanup the tempory image
@@ -178,6 +179,8 @@ while True:
 				# for the object
 				box = detections[0, 0, i, 3:7] * np.array([W, H, W, H])
 				(startX, startY, endX, endY) = box.astype("int")
+				data_collection(startX, startY, endX, endY, timestamp)
+
 				# draws rectangle
 				cv2.rectangle(frame, (startX, startY), (endX, endY),(0, 255, 0), 2)
 				
