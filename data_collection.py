@@ -1,6 +1,6 @@
 def data_collection(startY, endY):
     # difference in pixels between two detection passes
-    ypix = (endY - StartY)
+    ypix = (endY - startY)
 
     # pixel tiers accounting for road depth in ft/pixel
     tfive = 60/264 
@@ -29,3 +29,4 @@ def data_collection(startY, endY):
 
     print(vmiles)
 
+data_collection(11,21)
