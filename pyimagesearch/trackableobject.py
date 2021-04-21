@@ -6,7 +6,8 @@ class TrackableObject:
 		# store the object ID, then initialize a list of centroids
 		# using the current centroid
 		self.objectID = objectID
-		self.centroids = [centroid]
+		self.centroids = [centroid] 
+		self.lastLoc = 0 #this will store previous location
 
 		# initialize a dictionaries to store the timestamp and
 		# position of the object at various points

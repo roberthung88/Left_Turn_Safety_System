@@ -29,7 +29,7 @@ import time
 import cv2
 import os
 import matplotlib.pyplot as plt
-#import data_collection
+import data_collection as ds
 
 # def upload_file(tempFile, client, imageID):
 # 	# upload the image to Dropbox and cleanup the tempory image
@@ -187,9 +187,9 @@ while True:
 				print("StartX & EndX", startX, endX)
 				print("StartY & EndY", startY, endY)
 				
-				#gets snapshot of vehicles
-				plt.imshow(frame[startY:endY,startX:endX], interpolation='nearest')
-				plt.show()
+				# gets snapshot of vehicles
+				#plt.imshow(frame[startY:endY,startX:endX], interpolation='nearest')
+				#plt.show()
 				
 
 				# construct a dlib rectangle object from the bounding
@@ -236,152 +236,13 @@ while True:
 		if to is None:
 			to = TrackableObject(objectID, centroid)
 
-		# otherwise, if there is a trackable object and its speed has
-		# not yet been estimated then estimate it
-		elif not to.estimated:
-			# check if the direction of the object has been set, if
-			# not, calculate it, and set it
-			if to.direction is None:
-				y = [c[0] for c in to.centroids]
-				direction = centroid[0] - np.mean(y)
-				to.direction = direction
-
-			# if the direction is positive (indicating the object
-			# is moving from left to right)
-			if to.direction > 0:
-				# check to see if timestamp has been noted for
-				# point A
-				if to.timestamp["A"] == 0 :
-					# if the centroid's x-coordinate is greater than
-					# the corresponding point then set the timestamp
-					# as current timestamp and set the position as the
-					# centroid's x-coordinate
-					if centroid[0] > conf["speed_estimation_zone"]["A"]:
-						to.timestamp["A"] = ts
-						to.position["A"] = centroid[0]
-
-				# check to see if timestamp has been noted for
-				# point B
-				elif to.timestamp["B"] == 0:
-					# if the centroid's x-coordinate is greater than
-					# the corresponding point then set the timestamp
-					# as current timestamp and set the position as the
-					# centroid's x-coordinate
-					if centroid[0] > conf["speed_estimation_zone"]["B"]:
-						to.timestamp["B"] = ts
-						to.position["B"] = centroid[0]
-
-				# check to see if timestamp has been noted for
-				# point C
-				elif to.timestamp["C"] == 0:
-					# if the centroid's x-coordinate is greater than
-					# the corresponding point then set the timestamp
-					# as current timestamp and set the position as the
-					# centroid's x-coordinate
-					if centroid[0] > conf["speed_estimation_zone"]["C"]:
-						to.timestamp["C"] = ts
-						to.position["C"] = centroid[0]
-
-				# check to see if timestamp has been noted for
-				# point D
-				elif to.timestamp["D"] == 0:
-					# if the centroid's x-coordinate is greater than
-					# the corresponding point then set the timestamp
-					# as current timestamp, set the position as the
-					# centroid's x-coordinate, and set the last point
-					# flag as True
-					if centroid[0] > conf["speed_estimation_zone"]["D"]:
-						to.timestamp["D"] = ts
-						to.position["D"] = centroid[0]
-						to.lastPoint = True
-
-			# if the direction is negative (indicating the object
-			# is moving from right to left)
-			elif to.direction < 0:
-				# check to see if timestamp has been noted for
-				# point D
-				if to.timestamp["D"] == 0 :
-					# if the centroid's x-coordinate is lesser than
-					# the corresponding point then set the timestamp
-					# as current timestamp and set the position as the
-					# centroid's x-coordinate
-					if centroid[0] < conf["speed_estimation_zone"]["D"]:
-						to.timestamp["D"] = ts
-						to.position["D"] = centroid[0]
-
-				# check to see if timestamp has been noted for
-				# point C
-				elif to.timestamp["C"] == 0:
-					# if the centroid's x-coordinate is lesser than
-					# the corresponding point then set the timestamp
-					# as current timestamp and set the position as the
-					# centroid's x-coordinate
-					if centroid[0] < conf["speed_estimation_zone"]["C"]:
-						to.timestamp["C"] = ts
-						to.position["C"] = centroid[0]
-
-				# check to see if timestamp has been noted for
-				# point B
-				elif to.timestamp["B"] == 0:
-					# if the centroid's x-coordinate is lesser than
-					# the corresponding point then set the timestamp
-					# as current timestamp and set the position as the
-					# centroid's x-coordinate
-					if centroid[0] < conf["speed_estimation_zone"]["B"]:
-						to.timestamp["B"] = ts
-						to.position["B"] = centroid[0]
-
-				# check to see if timestamp has been noted for
-				# point A
-				elif to.timestamp["A"] == 0:
-					# if the centroid's x-coordinate is lesser than
-					# the corresponding point then set the timestamp
-					# as current timestamp, set the position as the
-					# centroid's x-coordinate, and set the last point
-					# flag as True
-					if centroid[0] < conf["speed_estimation_zone"]["A"]:
-						to.timestamp["A"] = ts
-						to.position["A"] = centroid[0]
-						to.lastPoint = True
-
-			# check to see if the vehicle is past the last point and
-			# the vehicle's speed has not yet been estimated, if yes,
-			# then calculate the vehicle speed and log it if it's
-			# over the limit
-			if to.lastPoint and not to.estimated:
-				# initialize the list of estimated speeds
-				estimatedSpeeds = []
-
-				# loop over all the pairs of points and estimate the
-				# vehicle speed
-				for (i, j) in points:
-					# calculate the distance in pixels
-					d = to.position[j] - to.position[i]
-					distanceInPixels = abs(d)
-
-					# check if the distance in pixels is zero, if so,
-					# skip this iteration
-					if distanceInPixels == 0:
-						continue
-
-					# calculate the time in hours
-					t = to.timestamp[j] - to.timestamp[i]
-					timeInSeconds = abs(t.total_seconds())
-					timeInHours = timeInSeconds / (60 * 60)
-
-					# calculate distance in kilometers and append the
-					# calculated speed to the list
-					distanceInMeters = distanceInPixels * meterPerPixel
-					distanceInKM = distanceInMeters / 1000
-					estimatedSpeeds.append(distanceInKM / timeInHours)
-
-				# calculate the average speed
-				to.calculate_speed(estimatedSpeeds)
-
-				# set the object as estimated
-				to.estimated = True
-				print("[INFO] Speed of the vehicle that just passed"\
-					" is: {:.2f} MPH".format(to.speedMPH))
+		if to.lastLoc == 0:
+			# no last location recorded, so add and not calculate speed
+			to.lastLoc = endY
+		else:
+			to.speedMPH = ds.data_collection(to.lastLoc, endY)
+			print("[INFO] Speed of the vehicle that just passed"\
+			" is: {:.2f} MPH".format(to.speedMPH))
 
 		# store the trackable object in our dictionary
 		trackableObjects[objectID] = to
