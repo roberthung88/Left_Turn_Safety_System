@@ -9,11 +9,16 @@ camera_left = CSICamera(capture_device=1, width=1280, height=720)
 
 # set mouse callback, clicking one point (x,y) on "depth" window
 # it will print out real-world 3D coordinate threeD[y][x][0/1/2] of the point (x,y)
-
 # when combining with car_detection, use left_recify as video source
 # after detecting a car, get the (x,y) of the car and input to threeD[y][x][ ] to get 3D coordinate
+
+# some further explanation:
 # you may ask why using "left_rectify" as car_detection video source, but threeD is from "depth"
-# points on depth and left_rectify are the same in real world, they share the same x-y coordinate
+# points on "depth" and "left_rectify" are the same in real world, they share the same x-y coordinate
+# so clicking on the left_rectify will show you the same result
+# but still we need depth graph, because the black part on depth graph does not have 3D coordinate
+# only white part on depth graph has a 3D coordinate
+# when you directly click on left_rectify, you have no idea whether this point has a 3D coordinate available
 
 cv2.namedWindow("depth")
 def callbackFunc(e, x, y, f, p):
