@@ -44,4 +44,4 @@ def data_collection(startY, endY):
     vfoot = yfoot / 1 # in ft/sec
     vmiles = vfoot * 0.681818 # in mph
 
-    return vmiles
+    return (vmiles, yfoot)

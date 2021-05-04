@@ -3,7 +3,7 @@
 # because OpenCV can't throttle FPS according to the framerate of the
 # video. This script is for development purposes only.
 #
-# python3 speed_estimation_dl_video.py --conf config/config.json --input sample_data/cars.mp4
+# python3 speed_estimation_dl_video.py --conf config/config.json --input sample_data/test2.mp4
 
 # inform the user about framerates and speeds
 print("[INFO] NOTE: When using an input video file, speeds will be " \
@@ -184,8 +184,8 @@ while True:
 				# draws rectangle
 				cv2.rectangle(frame, (startX, startY), (endX, endY),(0, 255, 0), 2)
 				
-				print("StartX & EndX", startX, endX)
-				print("StartY & EndY", startY, endY)
+				#print("StartX & EndX", startX, endX)
+				#print("StartY & EndY", startY, endY)
 				
 				# gets snapshot of vehicles
 				#plt.imshow(frame[startY:endY,startX:endX], interpolation='nearest')
@@ -240,9 +240,14 @@ while True:
 			# no last location recorded, so add and not calculate speed
 			to.lastLoc = endY
 		else:
-			to.speedMPH = ds.data_collection(to.lastLoc, endY)
-			print("[INFO] Speed of the vehicle that just passed"\
-			" is: {:.2f} MPH".format(to.speedMPH))
+			to.speedMPH, to.distance = ds.data_collection(to.lastLoc, endY)
+			if to.speedMPH > 0: 
+				print("[INFO] Speed of the vehicle that just passed"\
+				" is: {:.2f} MPH".format(to.speedMPH))
+				print("[INFO] Distance of the vehicle that just passed"\
+				" is: {:.2f} feet".format(to.distance))
+			else:
+				None	
 
 		# store the trackable object in our dictionary
 		trackableObjects[objectID] = to
