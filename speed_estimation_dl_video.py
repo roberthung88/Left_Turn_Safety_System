@@ -3,7 +3,7 @@
 # because OpenCV can't throttle FPS according to the framerate of the
 # video. This script is for development purposes only.
 #
-# python3 speed_estimation_dl_video.py --conf config/config.json --input sample_data/test2.mp4
+# python3 speed_estimation_dl_video.py --conf config/config.json --input sample_data/ezgif.com-gif-maker.mp4
 
 # inform the user about framerates and speeds
 print("[INFO] NOTE: When using an input video file, speeds will be " \
@@ -22,7 +22,6 @@ from datetime import datetime
 from threading import Thread
 import numpy as np
 import argparse
-# import dropbox
 import imutils
 import dlib
 import time
@@ -30,13 +29,7 @@ import cv2
 import os
 import matplotlib.pyplot as plt
 import data_collection as ds
-
-# def upload_file(tempFile, client, imageID):
-# 	# upload the image to Dropbox and cleanup the tempory image
-# 	print("[INFO] uploading {}...".format(imageID))
-# 	path = "/{}.jpg".format(imageID)
-# 	client.files_upload(open(tempFile.path, "rb").read(), path)
-# 	tempFile.cleanup()
+import padasip as pa 
 
 # construct the argument parser and parse the arguments
 ap = argparse.ArgumentParser()
@@ -56,12 +49,6 @@ CLASSES = ["background", "aeroplane", "bicycle", "bird", "boat",
 	"dog", "horse", "motorbike", "person", "pottedplant", "sheep",
 	"sofa", "train", "tvmonitor"]
 
-# check to see if the Dropbox should be used
-if conf["use_dropbox"]:
-	# connect to dropbox and start the session authorization process
-	client = dropbox.Dropbox(conf["dropbox_access_token"])
-	print("[SUCCESS] dropbox account linked")
-
 # load our serialized model from disk
 print("[INFO] loading model...")
 net = cv2.dnn.readNetFromCaffe(conf["prototxt_path"],
@@ -78,6 +65,8 @@ time.sleep(2.0)
 # the first frame from the video)
 H = None
 W = None
+cnt = 0
+
 
 # instantiate our centroid tracker, then initialize a list to store
 # each of our dlib correlation trackers, followed by a dictionary to
@@ -178,14 +167,19 @@ while True:
 				# compute the (x, y)-coordinates of the bounding box
 				# for the object
 				box = detections[0, 0, i, 3:7] * np.array([W, H, W, H])
+				global startX, startY, endX, endY
 				(startX, startY, endX, endY) = box.astype("int")
 				#data_collection(startX, startY, endX, endY, timestamp)
 
 				# draws rectangle
 				cv2.rectangle(frame, (startX, startY), (endX, endY),(0, 255, 0), 2)
+
 				
-				#print("StartX & EndX", startX, endX)
-				#print("StartY & EndY", startY, endY)
+				# print("StartX & EndX", startX, endX)
+				# print("StartY & EndY", startY, endY)
+
+
+				# print("EndY", endY)
 				
 				# gets snapshot of vehicles
 				#plt.imshow(frame[startY:endY,startX:endX], interpolation='nearest')
@@ -219,6 +213,8 @@ while True:
 			endX = int(pos.right())
 			endY = int(pos.bottom())
 
+
+			cv2.rectangle(frame, (startX, startY), (endX, endY),(0, 255, 0), 2)
 			# add the bounding box coordinates to the rectangles list
 			rects.append((startX, startY, endX, endY))
 
@@ -226,26 +222,46 @@ while True:
 	# centroids with (2) the newly computed object centroids
 	objects = ct.update(rects)
 
+
+	
 	# loop over the tracked objects
 	for (objectID, centroid) in objects.items():
 		# check to see if a trackable object exists for the current
 		# object ID
 		to = trackableObjects.get(objectID, None)
 
+		filt = pa.filters.FilterLMS(1, mu=2)
+
 		# if there is no existing trackable object, create one
 		if to is None:
 			to = TrackableObject(objectID, centroid)
+		
+		# Note: centroid[i] = (cX, cY)
+		
+		to.distance = ds.distance_detection(to, centroid[1])
+		y = filt.predict(centroid[1])
+		filt.adapt(to.distance, centroid[1])
 
 		if to.lastLoc == 0:
 			# no last location recorded, so add and not calculate speed
-			to.lastLoc = endY
+			to.lastLoc = centroid[1]
 		else:
-			to.speedMPH, to.distance = ds.data_collection(to.lastLoc, endY)
+			to.speedMPH = ds.data_collection(to.lastLoc, centroid[1])
 			if to.speedMPH > 0: 
-				print("[INFO] Speed of the vehicle that just passed"\
-				" is: {:.2f} MPH".format(to.speedMPH))
-				print("[INFO] Distance of the vehicle that just passed"\
-				" is: {:.2f} feet".format(to.distance))
+				if cnt == 0:
+					# if objectID == 1 or objectID == 3:
+					
+					# print("[INFO] Speed of the vehicle that just passed"\
+					# " is: {:.2f} MPH".format(to.speedMPH))
+					
+					# print("[INFO] Distance of the vehicle {:.2f}"\
+					# " is: {:.2f} feet".format(objectID, to.distance))
+
+					print("[INFO] Y-coord of the vehicle {:.2f}"\
+					" is: {:.2f} feet".format(objectID, centroid[1]))
+					cnt = 0
+				else:
+					cnt+=1
 			else:
 				None	
 
@@ -271,33 +287,10 @@ while True:
 				day = ts.strftime("%d")
 				time = ts.strftime("%H:%M:%S")
 
-				# check if dropbox is to be used to store the vehicle
-				# image
-				if conf["use_dropbox"]:
-					# initialize the image id, and the temporary file
-					imageID = ts.strftime("%H%M%S%f")
-					tempFile = TempFile()
-					cv2.imwrite(tempFile.path, frame)
-
-					# create a thread to upload the file to dropbox
-					# and start it
-
-					# t = Thread(target=upload_file, args=(tempFile,
-					# 	client, imageID,))
-					# t.start()
-
-					# log the event in the log file
-					info = "{},{},{},{},{},{}\n".format(year, month,
-						day, time, to.speedMPH, imageID)
-					logFile.write(info)
-
-				# otherwise, we are not uploading vehicle images to
-				# dropbox
-				else:
-					# log the event in the log file
-					info = "{},{},{},{},{}\n".format(year, month,
-						day, time, to.speedMPH)
-					logFile.write(info)
+				# log the event in the log file
+				info = "{},{},{},{},{}\n".format(year, month,
+					day, time, to.speedMPH)
+				logFile.write(info)
 
 				# set the object has logged
 				to.logged = True

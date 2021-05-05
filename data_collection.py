@@ -44,4 +44,44 @@ def data_collection(startY, endY):
     vfoot = yfoot / 1 # in ft/sec
     vmiles = vfoot * 0.681818 # in mph
 
-    return (vmiles, yfoot)
+    return vmiles
+
+def distance_detection(vehicle, endY):
+    tfive = 40/100 
+    tfour = 40/120
+    tthree = 40/140
+    ttwo = 40/160
+    tone = 40/180
+
+    if endY in range(0,180):
+        yfoot = (180-endY) * tone
+        yfoot =  (100 * tfive)
+        yfoot += (tfour*120)
+        yfoot += (tthree*140)
+        yfoot += (ttwo*160)
+    if endY in range(180, 340):
+        yfoot =  (100 * tfive)
+        yfoot += (tfour*120)
+        yfoot += (tthree*140)
+        yfoot += (340-endY) * ttwo
+    if endY in range(340, 480):
+        yfoot =  (100 * tfive)
+        yfoot += (tfour*120)
+        yfoot +=  (480-endY) * tthree
+    if endY in range(480, 600):
+        yfoot =  (100 * tfive)
+        yfoot += (600-endY) * tfour
+    if endY in range(600, 700):
+        yfoot = (700-endY) * tfive
+        
+    # yfoot -= 25
+    # if yfoot<0:
+    #     yfoot = 0
+    
+    # if vehicle.lastDist != 0 and yfoot > vehicle.lastDist:
+    #     # bad value
+    #     yfoot = vehicle.lastDist
+    # else:
+    #     vehicle.lastDist = yfoot
+
+    return yfoot 

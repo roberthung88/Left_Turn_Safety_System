@@ -7,7 +7,7 @@
 	// maximum distance between centroids to associate an object --
 	// if the distance is larger than this maximum distance we'll
 	// start to mark the object as "disappeared"
-	"max_distance": 175,
+	"max_distance": 250,
 
 	// number of frames to perform object tracking instead of object
 	// detection
@@ -36,11 +36,6 @@
 
 	// path to the prototxt file of the object detection model
 	"prototxt_path": "MobileNetSSD_deploy.prototxt",
-
-	// flag used to check if dropbox is to be used and dropbox access
-	// token
-	"use_dropbox": false,
-	"dropbox_access_token": "YOUR_DROPBOX_APP_ACCESS_TOKEN",
 
 	// output directory and csv file name
 	"output_path": "output",
