@@ -109,16 +109,7 @@ while True:
 
 		# set the file pointer to end of the file
 		pos = logFile.seek(0, os.SEEK_END)
-
-		# if we are using dropbox and this is a empty log file then
-		# write the column headings
-		if conf["use_dropbox"] and pos == 0:
-			logFile.write("Year,Month,Day,Time,Speed (in MPH),ImageID\n")
-
-		# otherwise, we are not using dropbox and this is a empty log
-		# file then write the column headings
-		elif pos == 0:
-			logFile.write("Year,Month,Day,Time (in MPH),Speed\n")
+		logFile.write("Year,Month,Day,Time (in MPH),Speed\n")
 
 	# resize the frame
 	frame = imutils.resize(frame, width=conf["frame_width"])
@@ -251,14 +242,14 @@ while True:
 				if cnt == 0:
 					# if objectID == 1 or objectID == 3:
 					
-					# print("[INFO] Speed of the vehicle that just passed"\
-					# " is: {:.2f} MPH".format(to.speedMPH))
+					print("[INFO] Speed of the vehicle that just passed"\
+					" is: {:.2f} MPH".format(to.speedMPH))
 					
 					# print("[INFO] Distance of the vehicle {:.2f}"\
 					# " is: {:.2f} feet".format(objectID, to.distance))
 
-					print("[INFO] Y-coord of the vehicle {:.2f}"\
-					" is: {:.2f} feet".format(objectID, centroid[1]))
+					# print("[INFO] Y-coord of the vehicle {:.2f}"\
+					# " is: {:.2f}.".format(objectID, centroid[1]))
 					cnt = 0
 				else:
 					cnt+=1

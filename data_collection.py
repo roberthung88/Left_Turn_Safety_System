@@ -41,7 +41,7 @@ def data_collection(startY, endY):
     # velocity of vehicle in between detections
     
     # assuming the time difference between detections is one second (can change)
-    vfoot = yfoot / 1 # in ft/sec
+    vfoot = yfoot / (1/23) # in ft/sec
     vmiles = vfoot * 0.681818 # in mph
 
     return vmiles

@@ -7,7 +7,7 @@ class TrackableObject:
 		# using the current centroid
 		self.objectID = objectID
 		self.centroids = [centroid] 
-		self.lastLoc = 0 #this will store previous location
+		self.lastLoc = 0 # this will store previous location
 		self.distance = 0
 		self.lastDist = 0
 
