@@ -1,15 +1,6 @@
-# USAGE
-# NOTE: When using an input video file, speeds will be inaccurate
-# because OpenCV can't throttle FPS according to the framerate of the
-# video. This script is for development purposes only.
-#
+# Usage: Run this command, with the last parameter changed to any video clip
+# May need to install necessary packages
 # python3 speed_estimation_dl_video.py --conf config/config.json --input sample_data/ezgif.com-gif-maker.mp4
-
-# inform the user about framerates and speeds
-print("[INFO] NOTE: When using an input video file, speeds will be " \
-	"inaccurate because OpenCV can't throttle FPS according to the " \
-	"framerate of the video. This script is for development purposes " \
-	"only.")
 
 # import the necessary packages
 from pyimagesearch.centroidtracker import CentroidTracker
@@ -79,13 +70,6 @@ trackableObjects = {}
 # keep the count of total number of frames
 totalFrames = 0
 
-# initialize the log file
-logFile = None
-
-# initialize the list of various points used to calculate the avg of
-# the vehicle speed
-points = [("A", "B"), ("B", "C"), ("C", "D")]
-
 # start the frames per second throughput estimator
 fps = FPS().start()
 
@@ -101,16 +85,6 @@ while True:
 	if frame is None:
 		break
 
-	# if the log file has not been created or opened
-	if logFile is None:
-		# build the log file path and create/open the log file
-		logPath = os.path.join(conf["output_path"], conf["csv_name"])
-		logFile = open(logPath, mode="a")
-
-		# set the file pointer to end of the file
-		pos = logFile.seek(0, os.SEEK_END)
-		logFile.write("Year,Month,Day,Time (in MPH),Speed\n")
-
 	# resize the frame
 	frame = imutils.resize(frame, width=conf["frame_width"])
 	rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
@@ -118,7 +92,7 @@ while True:
 	# if the frame dimensions are empty, set them
 	if W is None or H is None:
 		(H, W) = frame.shape[:2]
-		meterPerPixel = conf["distance"] / W
+		# meterPerPixel = conf["distance"] / W
 
 	# initialize our list of bounding box rectangles returned by
 	# either (1) our object detector or (2) the correlation trackers
@@ -158,9 +132,8 @@ while True:
 				# compute the (x, y)-coordinates of the bounding box
 				# for the object
 				box = detections[0, 0, i, 3:7] * np.array([W, H, W, H])
-				global startX, startY, endX, endY
 				(startX, startY, endX, endY) = box.astype("int")
-				#data_collection(startX, startY, endX, endY, timestamp)
+
 
 				# draws rectangle
 				cv2.rectangle(frame, (startX, startY), (endX, endY),(0, 255, 0), 2)
@@ -267,25 +240,6 @@ while True:
 		cv2.circle(frame, (centroid[0], centroid[1]), 4,
 			(0, 255, 0), -1)
 
-		# check if the object has not been logged
-		if not to.logged:
-			# check if the object's speed has been estimated and it
-			# is higher than the speed limit
-			if to.estimated and to.speedMPH > conf["speed_limit"]:
-				# set the current year, month, day, and time
-				year = ts.strftime("%Y")
-				month = ts.strftime("%m")
-				day = ts.strftime("%d")
-				time = ts.strftime("%H:%M:%S")
-
-				# log the event in the log file
-				info = "{},{},{},{},{}\n".format(year, month,
-					day, time, to.speedMPH)
-				logFile.write(info)
-
-				# set the object has logged
-				to.logged = True
-
 	# if the *display* flag is set, then display the current frame
 	# to the screen and record if a user presses a key
 	if conf["display"]:
@@ -305,10 +259,6 @@ while True:
 fps.stop()
 print("[INFO] elapsed time: {:.2f}".format(fps.elapsed()))
 print("[INFO] approx. FPS: {:.2f}".format(fps.fps()))
-
-# check if the log file object exists, if it does, then close it
-if logFile is not None:
-	logFile.close()
 
 # close any open windows
 cv2.destroyAllWindows()

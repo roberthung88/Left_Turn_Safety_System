@@ -17,16 +17,10 @@
 	"confidence": 0.40,
 
 	// frame width in pixels
-	"frame_width": 400,
-
-	// dictionary holding the different speed estimation columns
-	"speed_estimation_zone": {"A": 120, "B": 160, "C": 200, "D": 240},
+	"frame_width": 700,
 
 	// real world distance in meters
 	"distance": 16,
-
-	// speed limit in mph
-	"speed_limit": 0,
 
 	// flag indicating if the frame must be displayed
 	"display": true,
