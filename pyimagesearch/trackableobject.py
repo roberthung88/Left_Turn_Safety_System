@@ -9,13 +9,8 @@ class TrackableObject:
 		self.centroids = [centroid] 
 		self.lastLoc = 0 # this will store previous location
 		self.distance = 0
-		self.lastDist = 0
 
-		self.lastPoint = False
+		self.speed = 0
 		
-		# initialize the object speeds in MPH and KMPH
-		self.speedMPH = None
-		self.speedKMPH = None
-
 		# initialize the direction of the object
 		self.direction = None

@@ -1,11 +1,10 @@
 def data_collection(startY, endY):
-    # difference in pixels between two detection passes
+    # pixel to distance conversion
     starttemp = 0
     endtemp = 0
     
-    # print("ypix is: {:.2f}.".format(ypix))
     # pixel tiers accounting for road depth in ft/pixel
-    tone = 15/160 
+    tone = 15/70 
     ttwo = 5/180
     tthree = 1/300
     tfour = 1/320
@@ -59,15 +58,15 @@ def data_collection(startY, endY):
     # fps of 20
     vfoot = ypix / (1/20) # in ft/sec
     vmiles = vfoot * 0.681818 # in mph
-
-    return vmiles
+    
+    return vfoot
 
 def distance_detection(vehicle, endY):
-    tfive = 40/100 
-    tfour = 40/120
-    tthree = 40/140
-    ttwo = 40/160
-    tone = 40/180
+    tone = 15/10 
+    ttwo = 5/12
+    tthree = 1/70
+    tfour = 1/320
+    tfive = 1/340
 
     if endY in range(0,180):
         yfoot = (180-endY) * tone
@@ -89,15 +88,5 @@ def distance_detection(vehicle, endY):
         yfoot += (600-endY) * tfour
     if endY in range(600, 700):
         yfoot = (700-endY) * tfive
-        
-    # yfoot -= 25
-    # if yfoot<0:
-    #     yfoot = 0
-    
-    # if vehicle.lastDist != 0 and yfoot > vehicle.lastDist:
-    #     # bad value
-    #     yfoot = vehicle.lastDist
-    # else:
-    #     vehicle.lastDist = yfoot
 
-    return yfoot 
+    return yfoot - 1

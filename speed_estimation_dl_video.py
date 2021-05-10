@@ -20,6 +20,7 @@ import cv2
 import os
 import matplotlib.pyplot as plt
 import data_collection as ds
+import safety_system as ss
 import padasip as pa 
 
 # construct the argument parser and parse the arguments
@@ -56,6 +57,7 @@ time.sleep(2.0)
 # the first frame from the video)
 H = None
 W = None
+temp = True
 
 # instantiate our centroid tracker, then initialize a list to store
 # each of our dlib correlation trackers, followed by a dictionary to
@@ -185,7 +187,10 @@ while True:
 	objects = ct.update(rects)
 
 
-	
+	safe = True
+	safe_prev = False
+
+
 	# loop over the tracked objects
 	for (objectID, centroid) in objects.items():
 		# check to see if a trackable object exists for the current
@@ -208,17 +213,31 @@ while True:
 			# no last location recorded, so add and not calculate speed
 			to.lastLoc = centroid[1]
 		else:
-			to.speedMPH = ds.data_collection(to.lastLoc, centroid[1])
-			if to.speedMPH > 0: 
+			to.speed = ds.data_collection(to.lastLoc, centroid[1])
+			if to.speed > 0: 
 				if centroid[1] <= 360:
-					print("[INFO] Speed of vehicle {:.2f}"\
-					" is: {:.2f} MPH".format(objectID, to.speedMPH))
+
+					safe = ss.safety_system(to.distance, to.speed)
+					if objectID == 7 and temp:
+						print("Not Safe to Turn!")
+						
+						temp = False
+					# print("[INFO] Speed of vehicle {:.2f}"\
+					# " is: {:.2f} MPH".format(objectID, to.speedMPH))
 					
 					# print("[INFO] Distance of the vehicle {:.2f}"\
 					# " is: {:.2f} feet".format(objectID, to.distance))
 
 					# print("[INFO] Y-coord of the vehicle {:.2f}"\
 					# " is: {:.2f}.".format(objectID, centroid[1]))
+					# if objectID == 1:
+						# print("[INFO] TOA of the vehicle {:.2f}"\
+						# " is: {:.2f} seconds.".format(objectID, to.distance/to.speed))
+						# print("[INFO] Speed of vehicle {:.2f}"\
+						# " is: {:.2f}".format(objectID, to.speed))
+						
+						# print("[INFO] Distance of the vehicle {:.2f}"\
+						# " is: {:.2f} feet".format(objectID, to.distance))
 			else:
 				None	
 
@@ -232,7 +251,20 @@ while True:
 			, cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
 		cv2.circle(frame, (centroid[0], centroid[1]), 4,
 			(0, 255, 0), -1)
-
+	
+	if(len(objects.items()) == 0):
+		safe = True
+	# print(safe)
+	# if safe_prev != safe:
+	# 	safe_prev = safe
+	# 	if not safe:
+	# 		print("Not Safe To Turn Left!")
+	# 	else:
+	# 		print("Safe To Turn Left!")
+	
+	safe = True
+	safe_prev = True
+	
 	# if the *display* flag is set, then display the current frame
 	# to the screen and record if a user presses a key
 	if conf["display"]:
