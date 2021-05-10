@@ -7,9 +7,9 @@ def data_collection(startY, endY):
     # pixel tiers accounting for road depth in ft/pixel
     tone = 15/160 
     ttwo = 5/180
-    tthree = 5/200
-    tfour = 5/220
-    tfive = 5/240
+    tthree = 1/300
+    tfour = 1/320
+    tfive = 1/340
 
     if startY in range(0,180):
         starttemp = (180-startY) * tone
