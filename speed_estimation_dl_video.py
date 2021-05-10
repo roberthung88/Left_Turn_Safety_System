@@ -56,8 +56,6 @@ time.sleep(2.0)
 # the first frame from the video)
 H = None
 W = None
-cnt = 0
-
 
 # instantiate our centroid tracker, then initialize a list to store
 # each of our dlib correlation trackers, followed by a dictionary to
@@ -194,7 +192,7 @@ while True:
 		# object ID
 		to = trackableObjects.get(objectID, None)
 
-		filt = pa.filters.FilterLMS(1, mu=2)
+		# filt = pa.filters.FilterLMS(1, mu=2)
 
 		# if there is no existing trackable object, create one
 		if to is None:
@@ -203,8 +201,8 @@ while True:
 		# Note: centroid[i] = (cX, cY)
 		
 		to.distance = ds.distance_detection(to, centroid[1])
-		y = filt.predict(centroid[1])
-		filt.adapt(to.distance, centroid[1])
+		# y = filt.predict(centroid[1])
+		# filt.adapt(to.distance, centroid[1])
 
 		if to.lastLoc == 0:
 			# no last location recorded, so add and not calculate speed
@@ -212,20 +210,15 @@ while True:
 		else:
 			to.speedMPH = ds.data_collection(to.lastLoc, centroid[1])
 			if to.speedMPH > 0: 
-				if cnt == 0:
-					# if objectID == 1 or objectID == 3:
-					
-					print("[INFO] Speed of the vehicle that just passed"\
-					" is: {:.2f} MPH".format(to.speedMPH))
+				if centroid[1] <= 360:
+					print("[INFO] Speed of vehicle {:.2f}"\
+					" is: {:.2f} MPH".format(objectID, to.speedMPH))
 					
 					# print("[INFO] Distance of the vehicle {:.2f}"\
 					# " is: {:.2f} feet".format(objectID, to.distance))
 
 					# print("[INFO] Y-coord of the vehicle {:.2f}"\
 					# " is: {:.2f}.".format(objectID, centroid[1]))
-					cnt = 0
-				else:
-					cnt+=1
 			else:
 				None	
 
