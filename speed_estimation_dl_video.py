@@ -57,7 +57,8 @@ time.sleep(2.0)
 # the first frame from the video)
 H = None
 W = None
-temp = True
+num_zeros = 0
+counter = 0 # flag to toggle print statements
 
 # instantiate our centroid tracker, then initialize a list to store
 # each of our dlib correlation trackers, followed by a dictionary to
@@ -136,7 +137,8 @@ while True:
 
 
 				# draws rectangle
-				cv2.rectangle(frame, (startX, startY), (endX, endY),(0, 255, 0), 2)
+				if endY < 370:
+					cv2.rectangle(frame, (startX, startY), (endX, endY),(0, 255, 0), 2)
 
 				
 				# print("StartX & EndX", startX, endX)
@@ -149,17 +151,17 @@ while True:
 				#plt.imshow(frame[startY:endY,startX:endX], interpolation='nearest')
 				#plt.show()
 				
+				if endY < 370:
+					# construct a dlib rectangle object from the bounding
+					# box coordinates and then start the dlib correlation
+					# tracker
+					tracker = dlib.correlation_tracker()
+					rect = dlib.rectangle(startX, startY, endX, endY)
+					tracker.start_track(rgb, rect)
 
-				# construct a dlib rectangle object from the bounding
-				# box coordinates and then start the dlib correlation
-				# tracker
-				tracker = dlib.correlation_tracker()
-				rect = dlib.rectangle(startX, startY, endX, endY)
-				tracker.start_track(rgb, rect)
-
-				# add the tracker to our list of trackers so we can
-				# utilize it during skip frames
-				trackers.append(tracker)
+					# add the tracker to our list of trackers so we can
+					# utilize it during skip frames
+					trackers.append(tracker)
 
 	# otherwise, we should utilize our object *trackers* rather than
 	# object *detectors* to obtain a higher frame processing
@@ -177,10 +179,10 @@ while True:
 			endX = int(pos.right())
 			endY = int(pos.bottom())
 
-
-			cv2.rectangle(frame, (startX, startY), (endX, endY),(0, 255, 0), 2)
-			# add the bounding box coordinates to the rectangles list
-			rects.append((startX, startY, endX, endY))
+			if endY < 370:
+				cv2.rectangle(frame, (startX, startY), (endX, endY),(0, 255, 0), 2)
+				# add the bounding box coordinates to the rectangles list
+				rects.append((startX, startY, endX, endY))
 
 	# use the centroid tracker to associate the (1) old object
 	# centroids with (2) the newly computed object centroids
@@ -188,8 +190,20 @@ while True:
 
 
 	safe = True
-	safe_prev = False
 
+
+	# print("Num cars: ", len(objects))
+	if len(objects) == 0:
+		num_zeros += 1
+	else:
+		num_zeros = 0
+
+	if num_zeros == 2:
+		# no more cars
+		if counter == 1:
+			print("Safe to Turn Left!")
+			counter = 0
+			num_zeros = 0
 
 	# loop over the tracked objects
 	for (objectID, centroid) in objects.items():
@@ -216,12 +230,14 @@ while True:
 			to.speed = ds.data_collection(to.lastLoc, centroid[1])
 			if to.speed > 0: 
 				if centroid[1] <= 360:
-
 					safe = ss.safety_system(to.distance, to.speed)
-					if objectID == 7 and temp:
-						print("Not Safe to Turn!")
+					if not safe:
+						if counter == 0:
+							print("Not Safe to Turn Left!")
+							counter = 1
+					
 						
-						temp = False
+
 					# print("[INFO] Speed of vehicle {:.2f}"\
 					# " is: {:.2f} MPH".format(objectID, to.speedMPH))
 					
@@ -230,6 +246,7 @@ while True:
 
 					# print("[INFO] Y-coord of the vehicle {:.2f}"\
 					# " is: {:.2f}.".format(objectID, centroid[1]))
+					
 					# if objectID == 1:
 						# print("[INFO] TOA of the vehicle {:.2f}"\
 						# " is: {:.2f} seconds.".format(objectID, to.distance/to.speed))
@@ -252,18 +269,6 @@ while True:
 		cv2.circle(frame, (centroid[0], centroid[1]), 4,
 			(0, 255, 0), -1)
 	
-	if(len(objects.items()) == 0):
-		safe = True
-	# print(safe)
-	# if safe_prev != safe:
-	# 	safe_prev = safe
-	# 	if not safe:
-	# 		print("Not Safe To Turn Left!")
-	# 	else:
-	# 		print("Safe To Turn Left!")
-	
-	safe = True
-	safe_prev = True
 	
 	# if the *display* flag is set, then display the current frame
 	# to the screen and record if a user presses a key
