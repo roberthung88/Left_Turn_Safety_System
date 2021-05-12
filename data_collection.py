@@ -78,7 +78,7 @@ def distance_detection(vehicle, endY):
         yfoot =  (100 * tfive)
         yfoot += (tfour*120)
         yfoot += (tthree*140)
-        yfoot += (340-endY) * ttwo
+        yfoot += (330-endY) * ttwo
     if endY in range(340, 480):
         yfoot =  (100 * tfive)
         yfoot += (tfour*120)

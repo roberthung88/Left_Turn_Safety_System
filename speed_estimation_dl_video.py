@@ -1,5 +1,6 @@
 # Usage: Run this command, with the last parameter changed to any video clip
 # May need to install necessary packages
+# Credits to OpenCV and pyimagesearch for vehicle detection and tracking algorithms
 # python3 speed_estimation_dl_video.py --conf config/config.json --input sample_data/ezgif.com-gif-maker.mp4
 
 # import the necessary packages
@@ -48,7 +49,7 @@ net = cv2.dnn.readNetFromCaffe(conf["prototxt_path"],
 #net.setPreferableTarget(cv2.dnn.DNN_TARGET_MYRIAD)
 
 # initialize the video stream and allow the camera sensor to warmup
-print("[INFO] warming up camera...")
+print("[INFO] warming up camera...\n\n")
 #vs = VideoStream(src=0).start()
 vs = cv2.VideoCapture(args["input"])
 time.sleep(2.0)
@@ -57,7 +58,7 @@ time.sleep(2.0)
 # the first frame from the video)
 H = None
 W = None
-num_zeros = 0
+num_zeros = 0 # wait a couple of cycles before announcing there are no cars
 counter = 0 # flag to toggle print statements
 
 # instantiate our centroid tracker, then initialize a list to store
@@ -68,19 +69,15 @@ ct = CentroidTracker(maxDisappeared=conf["max_disappear"],
 trackers = []
 trackableObjects = {}
 
-# keep the count of total number of frames
 totalFrames = 0
 
-# start the frames per second throughput estimator
+# FPS estimator start
 fps = FPS().start()
 
-# loop over the frames of the stream
+# loop over the frames from the video stream
 while True:
-	# grab the next frame from the stream, store the current
-	# timestamp, and store the new date
+	#r reads one frame
 	ret, frame  = vs.read()
-	ts = datetime.now()
-	newDate = ts.strftime("%m-%d-%y")
 
 	# check if the frame is None, if so, break out of the loop
 	if frame is None:
@@ -134,24 +131,14 @@ while True:
 				# for the object
 				box = detections[0, 0, i, 3:7] * np.array([W, H, W, H])
 				(startX, startY, endX, endY) = box.astype("int")
-
-
-				# draws rectangle
-				if endY < 370:
-					cv2.rectangle(frame, (startX, startY), (endX, endY),(0, 255, 0), 2)
-
-				
-				# print("StartX & EndX", startX, endX)
-				# print("StartY & EndY", startY, endY)
-
-
-				# print("EndY", endY)
 				
 				# gets snapshot of vehicles
-				#plt.imshow(frame[startY:endY,startX:endX], interpolation='nearest')
-				#plt.show()
+				# plt.imshow(frame[startY:endY,startX:endX], interpolation='nearest')
+				# plt.show()
 				
-				if endY < 370:
+				if endY < 480:
+					# draws rectangle
+					cv2.rectangle(frame, (startX, startY), (endX, endY),(0, 255, 0), 2)
 					# construct a dlib rectangle object from the bounding
 					# box coordinates and then start the dlib correlation
 					# tracker
@@ -179,7 +166,7 @@ while True:
 			endX = int(pos.right())
 			endY = int(pos.bottom())
 
-			if endY < 370:
+			if endY < 480:
 				cv2.rectangle(frame, (startX, startY), (endX, endY),(0, 255, 0), 2)
 				# add the bounding box coordinates to the rectangles list
 				rects.append((startX, startY, endX, endY))
@@ -189,19 +176,20 @@ while True:
 	objects = ct.update(rects)
 
 
-	safe = True
+	safe = True # safe to turn or not
 
-
-	# print("Num cars: ", len(objects))
 	if len(objects) == 0:
 		num_zeros += 1
 	else:
 		num_zeros = 0
 
-	if num_zeros == 2:
+	if num_zeros == 8:
 		# no more cars
 		if counter == 1:
+			print("\n\n")
+			print("     :) :) :)     ")
 			print("Safe to Turn Left!")
+			print("     :) :) :)     ")
 			counter = 0
 			num_zeros = 0
 
@@ -211,7 +199,7 @@ while True:
 		# object ID
 		to = trackableObjects.get(objectID, None)
 
-		# filt = pa.filters.FilterLMS(1, mu=2)
+		filt = pa.filters.FilterLMS(1, mu=2)
 
 		# if there is no existing trackable object, create one
 		if to is None:
@@ -220,8 +208,8 @@ while True:
 		# Note: centroid[i] = (cX, cY)
 		
 		to.distance = ds.distance_detection(to, centroid[1])
-		# y = filt.predict(centroid[1])
-		# filt.adapt(to.distance, centroid[1])
+		y = filt.predict(centroid[1])
+		filt.adapt(to.distance, centroid[1])
 
 		if to.lastLoc == 0:
 			# no last location recorded, so add and not calculate speed
@@ -229,35 +217,20 @@ while True:
 		else:
 			to.speed = ds.data_collection(to.lastLoc, centroid[1])
 			if to.speed > 0: 
+				# only calculate vehicles that have not passed the driver
 				if centroid[1] <= 360:
 					safe = ss.safety_system(to.distance, to.speed)
 					if not safe:
 						if counter == 0:
+							print("!!!!!!!!!!!!!!!!!!!!!!")
 							print("Not Safe to Turn Left!")
+							print("!!!!!!!!!!!!!!!!!!!!!!\n")
 							counter = 1
-					
-						
 
-					# print("[INFO] Speed of vehicle {:.2f}"\
-					# " is: {:.2f} MPH".format(objectID, to.speedMPH))
-					
-					# print("[INFO] Distance of the vehicle {:.2f}"\
-					# " is: {:.2f} feet".format(objectID, to.distance))
 
-					# print("[INFO] Y-coord of the vehicle {:.2f}"\
-					# " is: {:.2f}.".format(objectID, centroid[1]))
+					print("[INFO] Speed of vehicle {:.2f}"\
+					" is: {:.2f} MPH.".format(objectID, to.speed*0.681818), end = "\r")
 					
-					# if objectID == 1:
-						# print("[INFO] TOA of the vehicle {:.2f}"\
-						# " is: {:.2f} seconds.".format(objectID, to.distance/to.speed))
-						# print("[INFO] Speed of vehicle {:.2f}"\
-						# " is: {:.2f}".format(objectID, to.speed))
-						
-						# print("[INFO] Distance of the vehicle {:.2f}"\
-						# " is: {:.2f} feet".format(objectID, to.distance))
-			else:
-				None	
-
 		# store the trackable object in our dictionary
 		trackableObjects[objectID] = to
 
